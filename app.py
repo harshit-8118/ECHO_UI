@@ -36,6 +36,7 @@ HERE = Path(__file__).resolve().parent
 UPLOAD_DIR = HERE / "uploads"
 OUTPUT_ROOT = HERE / "outputs"
 REGRESSION_FP16 = HERE / "reg_head_best.pt"
+DEMO_MANIFEST = HERE / "demo_samples.csv"
 
 
 @st.cache_resource(show_spinner="Loading EchoJEPA backbone and segmentation decoder...")
@@ -298,8 +299,13 @@ def main() -> None:
         )
         requested_device = st.selectbox(
             "Device",
-            ["cuda"] if torch.cuda.is_available() else ["cpu"],
+            ["cuda", "cpu"] if torch.cuda.is_available() else ["cpu"],
         )
+        show_ground_truth = st.radio(
+            "Show ground-truth LVEF",
+            ["Off", "On"],
+            horizontal=True,
+        ) == "On"
         st.caption("The model always uses centered 16-frame clips around each selected target frame.")
 
     uploaded_file = st.file_uploader("Choose an AVI or MP4 video", type=["avi", "mp4", "mov", "mkv"])
@@ -313,6 +319,19 @@ def main() -> None:
         return
 
     video_path = save_uploaded_video(uploaded_file)
+    true_ef = None
+    if show_ground_truth:
+        if DEMO_MANIFEST.is_file():
+            with DEMO_MANIFEST.open(newline="") as file:
+                rows = list(csv.DictReader(file))
+            uploaded_name = Path(uploaded_file.name).stem
+            match = next((row for row in rows if Path(row["file_name"]).stem == uploaded_name), None)
+            if match:
+                true_ef = float(match["true_ef"])
+            else:
+                st.warning(f"Ground-truth LVEF is unavailable for `{uploaded_name}`.")
+        else:
+            st.warning(f"Ground-truth manifest not found: {DEMO_MANIFEST}")
     result_key = (
         f"{video_path}:{threshold}:{frame_step}:{ef_num_clips}:"
         f"{DEFAULT_BACKBONE}:{DEFAULT_SEGMENTATION}:{REGRESSION_FP16}"
@@ -364,11 +383,22 @@ def main() -> None:
     st.success("Analysis complete")
     ef_value = float(ef_result["ef_percent"])
     ef_std = float(ef_result["ef_std"])
-    st.metric(
-        "Predicted LVEF",
-        f"{ef_value:.2f}%",
-        help=f"Mean of {ef_num_clips} clip prediction(s); clip standard deviation {ef_std:.3f} points.",
-    )
+    if true_ef is None:
+        st.metric(
+            "Predicted LVEF",
+            f"{ef_value:.2f}%",
+            help=f"EF clip standard deviation: {ef_std:.3f} points.",
+        )
+    else:
+        correct_col, predicted_col = st.columns(2)
+        correct_col.metric("Ground-truth LVEF", f"{true_ef:.2f}%")
+        predicted_col.metric(
+            "Predicted LVEF",
+            f"{ef_value:.2f}%",
+            delta=f"{ef_value - true_ef:+.2f} points",
+            delta_color="inverse",
+            help=f"EF clip standard deviation: {ef_std:.3f} points.",
+        )
     original_column, segmentation_column = st.columns(2)
     video_aspect_ratio = 1.0
     capture = cv2.VideoCapture(str(original_path))
