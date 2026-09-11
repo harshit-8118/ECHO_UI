@@ -198,7 +198,10 @@ def process_video(
             frame = frames[frame_index]
             original_frame = original_frames[frame_index]
             phase_start = time.perf_counter()
-            clip = make_clip(frames, frame_index).unsqueeze(0).to(device, non_blocking=True)
+            model_dtype = next(model.parameters()).dtype
+            clip = make_clip(frames, frame_index).unsqueeze(0).to(
+                device=device, dtype=model_dtype, non_blocking=True
+            )
             clip_seconds += time.perf_counter() - phase_start
 
             phase_start = time.perf_counter()

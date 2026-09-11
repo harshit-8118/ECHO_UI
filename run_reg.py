@@ -182,7 +182,10 @@ def predict_ef(
     encoder_seconds = probe_seconds = 0.0
     for clip_number in range(num_clips):
         indices = regression_clip_indices(len(model_frames), randomized=clip_number > 0, rng=rng)
-        clip = make_regression_clip(model_frames, indices).unsqueeze(0).to(device)
+        encoder_dtype = next(encoder.parameters()).dtype
+        clip = make_regression_clip(model_frames, indices).unsqueeze(0).to(
+            device=device, dtype=encoder_dtype
+        )
         phase_start = time.perf_counter()
         with torch.amp.autocast("cuda", enabled=device.type == "cuda", dtype=torch.float16):
             tokens = encoder(clip)

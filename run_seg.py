@@ -224,7 +224,8 @@ def load_model(backbone_path: Path, segmentation_path: Path, device: torch.devic
         raise KeyError("Expected 'target_encoder' in the EchoJEPA checkpoint")
 
     phase_start = time.perf_counter()
-    model = EchoJepaSegmentationModel().half()
+    model_dtype = torch.float16 if device.type == "cuda" else torch.float32
+    model = EchoJepaSegmentationModel().to(dtype=model_dtype)
     print(f"[TIMING] Build model architecture: {time.perf_counter() - phase_start:.2f}s")
     phase_start = time.perf_counter()
     backbone_state = clean_state_dict(backbone_checkpoint["target_encoder"])
@@ -269,7 +270,7 @@ def load_model(backbone_path: Path, segmentation_path: Path, device: torch.devic
     model = model.to(device).eval()
     if device.type == "cuda":
         torch.cuda.synchronize(device)
-    print(f"[TIMING] Move model to {device}: {time.perf_counter() - phase_start:.2f}s")
+    print(f"[TIMING] Move model to {device} ({model_dtype}): {time.perf_counter() - phase_start:.2f}s")
     print(f"[TIMING] Total model loading: {time.perf_counter() - total_start:.2f}s")
     return model
 
