@@ -1,0 +1,4 @@
+numpy
+opencv-python-headless
+streamlit
+torch>=2.0
