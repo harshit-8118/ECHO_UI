@@ -19,8 +19,8 @@ ECHO_UI/
 
 ```bash
 git clone git@github.com:harshit-8118/ECHO_UI.git
-git lfs pull
 cd ECHO_UI
+git lfs pull
 pip install -r requirements.txt
 ```
 
