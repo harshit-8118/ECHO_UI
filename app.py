@@ -33,11 +33,12 @@ from run_reg import load_regression_probe, predict_ef
 
 
 HERE = Path(__file__).resolve().parent
+MODELS_DIR = HERE / "models"
+
 UPLOAD_DIR = HERE / "uploads"
 OUTPUT_ROOT = HERE / "outputs"
-REGRESSION_FP16 = HERE / "reg_head_best.pt"
+REGRESSION_FP16 = MODELS_DIR / "reg_head_best.pt"
 DEMO_MANIFEST = HERE / "demo_samples.csv"
-
 
 @st.cache_resource(show_spinner="Loading EchoJEPA backbone and segmentation decoder...")
 def get_model(backbone_path: str, segmentation_path: str, device_name: str):

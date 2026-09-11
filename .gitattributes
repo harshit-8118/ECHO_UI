@@ -1,3 +1,4 @@
 reg_head_best.pt filter=lfs diff=lfs merge=lfs -text
 seg_decoder_best.pt filter=lfs diff=lfs merge=lfs -text
 vjepa21_vitl_mimic_pt117-005_target_fp16.pt filter=lfs diff=lfs merge=lfs -text
+models/*.pt filter=lfs diff=lfs merge=lfs -text

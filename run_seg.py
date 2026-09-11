@@ -27,9 +27,10 @@ IMAGENET_MEAN = torch.tensor((0.485, 0.456, 0.406)).view(3, 1, 1, 1)
 IMAGENET_STD = torch.tensor((0.229, 0.224, 0.225)).view(3, 1, 1, 1)
 
 HERE = Path(__file__).resolve().parent
-DEFAULT_BACKBONE = HERE / "vjepa21_vitl_mimic_pt117-005_target_fp16.pt"
-DEFAULT_SEGMENTATION = HERE / "seg_decoder_best.pt"
+MODELS_DIR = HERE / "models"
 
+DEFAULT_BACKBONE = MODELS_DIR / "vjepa21_vitl_mimic_pt117-005_target_fp16.pt"
+DEFAULT_SEGMENTATION = MODELS_DIR / "seg_decoder_best.pt"
 
 class PatchEmbed3D(nn.Module):
     def __init__(self) -> None:
